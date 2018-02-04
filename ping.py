@@ -3,10 +3,18 @@ import requests
 import json
 import re
 import config
+import telebot
 from colorama import Fore, Back, Style
 from colorama import init
 init()
-		
+token = config.token
+print token
+bot = telebot.TeleBot(token)
+def is_owner(message):
+    if message.from_user.id == config.my_id:
+        return True
+    else:
+        bot.reply_to(message, "You aint the guy")		
 def ewbf_ping(ip, port):
 	print (Fore.YELLOW + 'Pinging ') + (Fore.BLUE + ip)
   	#ping ip
@@ -20,6 +28,7 @@ def ewbf_ping(ip, port):
 		#save ewbf json data to list			
 		dict = r.json()
 		dict5 = dict['result']
+
 		#go through the keys in the dict and print to console	
 		for key in dict5:
 			print (Fore.CYAN + key['name']), (Fore.RED + '|speed|'), (Fore.GREEN + str(key['speed_sps'])), (Fore.RED + '|temperature|'), (Fore.GREEN + str(key['temperature'])), (Fore.RED + '|gpu Power Usage|'), (Fore.GREEN + str(key['gpu_power_usage'])), (Style.RESET_ALL)
@@ -63,5 +72,21 @@ for n in config.ewbf_rig:
 for n in config.clay_rig:
 	clay_ping(n, config.clay_rig[n])
 
-	
+@bot.message_handler(commands=['stat'])
+def clay_msg(message):
+  	for n in config.clay_rig:
+  	#ping ip
+	  	r = pyping.ping(n)
+		#if pyping gives 0, success
+		if r.ret_code == 0:
+			r = requests.get('http://'+n + config.clay_rig[n])
+			t = re.search('\{[^\}]+\}', r.text)
+			j = json.loads(t.group(0))
+			dict = j['result']
+			resp = ('AVG Hashrate '+ str((float(j['result'][2].split(';')[0]) / 1000)))
+		  	bot.reply_to(message, resp)
+		else:
+			resp = 'this one is down'
+		  	bot.reply_to(message, resp)
 
+bot.polling()
