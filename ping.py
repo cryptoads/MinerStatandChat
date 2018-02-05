@@ -72,8 +72,15 @@ for n in config.ewbf_rig:
 for n in config.clay_rig:
 	clay_ping(n, config.clay_rig[n])
 
-@bot.message_handler(commands=['stat'])
-def clay_msg(message):
+
+@bot.message_handler(commands=['help'])
+def start(message):
+	resp = 'Type /stat to see miner stats'
+	bot.reply_to(message, resp)
+
+
+@bot.message_handler(commands=['stat', 'help'])
+def stat(message):
   	for n in config.clay_rig:
   	#ping ip
 	  	r = pyping.ping(n)
@@ -82,11 +89,43 @@ def clay_msg(message):
 			r = requests.get('http://'+n + config.clay_rig[n])
 			t = re.search('\{[^\}]+\}', r.text)
 			j = json.loads(t.group(0))
+			card_temp1=''
+			card1 = 0 
 			dict = j['result']
-			resp = ('AVG Hashrate '+ str((float(j['result'][2].split(';')[0]) / 1000)))
+			i=0
+			k = 1
+			while i <12:
+				card1 += 1
+				card_temp1 += 'Card'+ str(card1)+ ' temp | '+ str(j['result'][6].split(';')[i]) + '| Fan |' + str(j['result'][6].split(';')[k]) + '%' + '\n'
+				k+=1
+				i+=2
+			resp = ('580 Miner' + '\n'+ str(j['result'][7]) + '\n' + 'Hashrate '+ str((float(j['result'][2].split(';')[0]) / 1000))) + '\n' + card_temp1
 		  	bot.reply_to(message, resp)
 		else:
-			resp = 'this one is down'
+			resp = str(n) + 'this one is down'
+		  	bot.reply_to(message, resp)
+	for n in config.ewbf_rig:
+		r = pyping.ping(n)
+		speed_avg = 0 
+		card_temp = ''
+		card = 0
+		server = ''
+		if r.ret_code == 0:
+			r = requests.get('http://'+ n + config.ewbf_rig[n])
+			dict = r.json()
+			dict5 = dict['result']
+			server = dict['current_server']
+			#go through the keys in the dict and print to console	
+			for key in dict5:
+				#resp = key['name']+ '|speed|' + str(key['speed_sps']) + '|temperature|' +str(key['temperature'])+ '|gpu Power Usage|'+ str(key['gpu_power_usage'])
+				speed_avg += key['speed_sps']
+				card += 1
+				card_temp += 'Card' + str(card) + ' temp ' + str(key['temperature']) + '\n'
+				resp = str(key['name']) + '\n' + 'Current Server ' + server + '\n'+ 'Hashrate ' + str(speed_avg) + '\n' + card_temp
+            
+			bot.reply_to(message, resp)
+		else:
+			resp = str(n)+ 'this one is down'
 		  	bot.reply_to(message, resp)
 
 bot.polling()
