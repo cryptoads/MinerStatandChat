@@ -21,17 +21,22 @@ def ewbf_ping(ip, port):
   	r = pyping.ping(ip)
 	#if pyping gives 0, success
 	if r.ret_code == 0:
-		print (Back.MAGENTA+(Fore.GREEN + ip)) + (Fore.GREEN + ' is up'),(Style.RESET_ALL)
-		print (Fore.CYAN + 'The avg response time is ') + (Fore.GREEN + r.avg_rtt)
+		try:
+		
 
-		r = requests.get('http://'+ip+port)
-		#save ewbf json data to list			
-		dict = r.json()
-		dict5 = dict['result']
+			print (Back.MAGENTA+(Fore.GREEN + ip)) + (Fore.GREEN + ' is up'),(Style.RESET_ALL)
+			print (Fore.CYAN + 'The avg response time is ') + (Fore.GREEN + r.avg_rtt)
 
-		#go through the keys in the dict and print to console	
-		for key in dict5:
-			print (Fore.CYAN + key['name']), (Fore.RED + '|speed|'), (Fore.GREEN + str(key['speed_sps'])), (Fore.RED + '|temperature|'), (Fore.GREEN + str(key['temperature'])), (Fore.RED + '|gpu Power Usage|'), (Fore.GREEN + str(key['gpu_power_usage'])), (Style.RESET_ALL)
+			r = requests.get('http://'+ip+port)
+			#save ewbf json data to list			
+			dict = r.json()
+			dict5 = dict['result']
+
+			#go through the keys in the dict and print to console	
+			for key in dict5:
+				print (Fore.CYAN + key['name']), (Fore.RED + '|speed|'), (Fore.GREEN + str(key['speed_sps'])), (Fore.RED + '|temperature|'), (Fore.GREEN + str(key['temperature'])), (Fore.RED + '|gpu Power Usage|'), (Fore.GREEN + str(key['gpu_power_usage'])), (Style.RESET_ALL)
+		except Exception as e:
+			print "connection failed"
 	else:
 		print ip + ' is down'
 		print 'restarting computer'
@@ -42,24 +47,27 @@ def clay_ping(ip, port):
   	r = pyping.ping(ip)
 	#if pyping gives 0, success
 	if r.ret_code == 0:
-		print (Back.MAGENTA+(Fore.GREEN + ip)) + (Fore.GREEN + ' is up'),(Style.RESET_ALL)
-		print (Fore.CYAN + 'The avg response time is ') + (Fore.GREEN + r.avg_rtt)
-		r = requests.get('http://'+ip+port)
-		t = re.search('\{[^\}]+\}', r.text)
-		j = json.loads(t.group(0))
-		dict = j['result']
-		i=0
-		print (Fore.RED + 'Avg Hashrate |'), (Fore.GREEN + str(float(j['result'][2].split(';')[0]) / 1000)), (Style.RESET_ALL)
-		for n in j['result'][3].split(';'):
-			print (Fore.RED +'Speed |'), (Fore.GREEN +str(float(j['result'][3].split(';')[i])/ 1000)),(Style.RESET_ALL)
-			i=+ 1
+		try:
+			print (Back.MAGENTA+(Fore.GREEN + ip)) + (Fore.GREEN + ' is up'),(Style.RESET_ALL)
+			print (Fore.CYAN + 'The avg response time is ') + (Fore.GREEN + r.avg_rtt)
+			r = requests.get('http://'+ip+port)
+			t = re.search('\{[^\}]+\}', r.text)
+			j = json.loads(t.group(0))
+			dict = j['result']
+			i=0
+			print (Fore.RED + 'Avg Hashrate |'), (Fore.GREEN + str(float(j['result'][2].split(';')[0]) / 1000)), (Style.RESET_ALL)
+			for n in j['result'][3].split(';'):
+				print (Fore.RED +'Speed |'), (Fore.GREEN +str(float(j['result'][3].split(';')[i])/ 1000)),(Style.RESET_ALL)
+				i=+ 1
 
-		i=0
-		k = 1
-		while i <12:
-			print (Fore.RED+'temperature |'), (Fore.GREEN + j['result'][6].split(';')[i]),(Fore.RED + '| Fan |'), (Fore.CYAN + j['result'][6].split(';')[k]),(Fore.CYAN + '%'),(Style.RESET_ALL)
-			k+=1
-			i+=2
+			i=0
+			k = 1
+			while i <12:
+				print (Fore.RED+'temperature |'), (Fore.GREEN + j['result'][6].split(';')[i]),(Fore.RED + '| Fan |'), (Fore.CYAN + j['result'][6].split(';')[k]),(Fore.CYAN + '%'),(Style.RESET_ALL)
+				k+=1
+				i+=2
+		except Exception as e:
+			print 'connection failed'
 	else:
 		print ip + ' is down'
 		print 'restarting computer'
@@ -73,59 +81,69 @@ for n in config.clay_rig:
 	clay_ping(n, config.clay_rig[n])
 
 
-@bot.message_handler(commands=['help'])
+@bot.message_handler(commands=['start','help'])
 def start(message):
 	resp = 'Type /stat to see miner stats'
 	bot.reply_to(message, resp)
 
 
-@bot.message_handler(commands=['stat', 'help'])
+@bot.message_handler(commands=['stat'])
 def stat(message):
   	for n in config.clay_rig:
   	#ping ip
 	  	r = pyping.ping(n)
 		#if pyping gives 0, success
-		if r.ret_code == 0:
-			r = requests.get('http://'+n + config.clay_rig[n])
-			t = re.search('\{[^\}]+\}', r.text)
-			j = json.loads(t.group(0))
-			card_temp1=''
-			card1 = 0 
-			dict = j['result']
-			i=0
-			k = 1
-			while i <12:
-				card1 += 1
-				card_temp1 += 'Card'+ str(card1)+ ' temp | '+ str(j['result'][6].split(';')[i]) + '| Fan |' + str(j['result'][6].split(';')[k]) + '%' + '\n'
-				k+=1
-				i+=2
-			resp = ('580 Miner' + '\n'+ str(j['result'][7]) + '\n' + 'Hashrate '+ str((float(j['result'][2].split(';')[0]) / 1000))) + '\n' + card_temp1
-		  	bot.reply_to(message, resp)
-		else:
-			resp = str(n) + 'this one is down'
-		  	bot.reply_to(message, resp)
+		try:
+
+			if r.ret_code == 0:
+				r = requests.get('http://'+n + config.clay_rig[n])
+				t = re.search('\{[^\}]+\}', r.text)
+				j = json.loads(t.group(0))
+				card_temp1=''
+				card1 = 0 
+				dict = j['result']
+				i=0
+				k = 1
+				while i <12:
+					card1 += 1
+					card_temp1 += 'Card'+ str(card1)+ ' temp | '+ str(j['result'][6].split(';')[i]) + '| Fan |' + str(j['result'][6].split(';')[k]) + '%' + '\n'
+					k+=1
+					i+=2
+				resp = ('580 Miner' + '\n'+ str(j['result'][7]) + '\n' + 'Hashrate '+ str((float(j['result'][2].split(';')[0]) / 1000))) + '\n' + card_temp1
+			  	bot.reply_to(message, resp)
+			else:
+				resp = "cant ping "+str(n)
+			  	bot.reply_to(message, resp)
+		except:
+			bot.reply_to(message, 'Computer is responding but I cant connect to webserver at ' + str(n))
+
+
 	for n in config.ewbf_rig:
 		r = pyping.ping(n)
 		speed_avg = 0 
 		card_temp = ''
 		card = 0
 		server = ''
-		if r.ret_code == 0:
-			r = requests.get('http://'+ n + config.ewbf_rig[n])
-			dict = r.json()
-			dict5 = dict['result']
-			server = dict['current_server']
-			#go through the keys in the dict and print to console	
-			for key in dict5:
-				#resp = key['name']+ '|speed|' + str(key['speed_sps']) + '|temperature|' +str(key['temperature'])+ '|gpu Power Usage|'+ str(key['gpu_power_usage'])
-				speed_avg += key['speed_sps']
-				card += 1
-				card_temp += 'Card' + str(card) + ' temp ' + str(key['temperature']) + '\n'
-				resp = str(key['name']) + '\n' + 'Current Server ' + server + '\n'+ 'Hashrate ' + str(speed_avg) + '\n' + card_temp
-            
-			bot.reply_to(message, resp)
-		else:
-			resp = str(n)+ 'this one is down'
-		  	bot.reply_to(message, resp)
+		try:
+		
+			if r.ret_code == 0:
+				r = requests.get('http://'+ n + config.ewbf_rig[n])
+				dict = r.json()
+				dict5 = dict['result']
+				server = dict['current_server']
+				#go through the keys in the dict and print to console	
+				for key in dict5:
+					#resp = key['name']+ '|speed|' + str(key['speed_sps']) + '|temperature|' +str(key['temperature'])+ '|gpu Power Usage|'+ str(key['gpu_power_usage'])
+					speed_avg += key['speed_sps']
+					card += 1
+					card_temp += 'Card' + str(card) + ' temp ' + str(key['temperature']) + '\n'
+					resp = str(key['name']) + '\n' + 'Current Server ' + server + '\n'+ 'Hashrate ' + str(speed_avg) + '\n' + card_temp
+		         
+				bot.reply_to(message, resp)
+			else:
+				resp = 'cant ping '+str(n)
+			  	bot.reply_to(message, resp)
+		except:
+			bot.reply_to(message, 'Computer is responding but I cant connect to webserver at ' + str(n))
 
 bot.polling()
