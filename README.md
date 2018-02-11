@@ -4,28 +4,29 @@ This is a python script that uses the GPIO pins in a Raspberry Pi and a relay bo
 
 ## Code Example
 
-To check that the miner is active we use the pyping library to detect if the miner is online, and then the request library to pull the json data. I do some formatting of the json that we recieve and print messages to the console and to telegram, but this is the basis of the logic. 
-	r = pyping.ping(ip)
-			if r.ret_code == 0:
-				try:
-					r = requests.get('http://'+ip+port, timeout=5)
-				except:
-					minerrestart(ip)
-			else:
-				minerrestart(ip)
-This is how I use GPIO pins to restart the machine
-def minerrestart(pin):
-	GPIO.setmode(GPIO.BCM)
-	GPIO.setup(config.pins[pin], GPIO.OUT, initial=GPIO.LOW)
-	GPIO.output(config.pins[pin], GPIO.HIGH)
-	sleep(5) 
-	GPIO.output(config.pins[pin], GPIO.LOW) 
-	sleep(5)
-	GPIO.output(config.pins[pin], GPIO.HIGH)
-	sleep(10) 
-	GPIO.output(config.pins[pin], GPIO.LOW) 
-	sleep(3)
-	GPIO.cleanup()
+To check that the miner is active we use the pyping library to detect if the miner is online, and then the request library to pull the json data. I do some formatting of the json that we recieve and print messages to the console and to telegram, but this is the basis of the logic. <br>
+<br>
+	r = pyping.ping(ip)<br>
+			if r.ret_code == 0:<br>
+				try:<br>
+					r = requests.get('http://'+ip+port, timeout=5)<br>
+				except:<br>
+					minerrestart(ip)<br>
+			else:<br>
+				minerrestart(ip)<br>
+This is how I use GPIO pins to restart the machine<br>
+def minerrestart(pin):<br>
+	GPIO.setmode(GPIO.BCM)<br>
+	GPIO.setup(config.pins[pin], GPIO.OUT, initial=GPIO.LOW)<br>
+	GPIO.output(config.pins[pin], GPIO.HIGH)<br>
+	sleep(5) <br>
+	GPIO.output(config.pins[pin], GPIO.LOW) <br>
+	sleep(5)<br>
+	GPIO.output(config.pins[pin], GPIO.HIGH)<br>
+	sleep(10) <br>
+	GPIO.output(config.pins[pin], GPIO.LOW) <br>
+	sleep(3)<br>
+	GPIO.cleanup()<br>
 
 ## Motivation
 
