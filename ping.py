@@ -5,7 +5,7 @@ import re
 import config
 import telebot
 import threading
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from time import sleep
 from colorama import Fore, Back, Style
 from colorama import init
@@ -21,14 +21,14 @@ def is_owner(message):
         return True
     else:
         bot.reply_to(message, "You aint the guy")	
-        
+
 #when bot start up, send owner a dank message
 bot.send_message(config.my_id, "Suhhhhh Dude.");
 
 def minerrestart(pin):
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setup(config.pins[pin], GPIO.OUT, initial=GPIO.LOW)
- # Turn relay ON
+ 	# Turn relay ON
 	GPIO.output(config.pins[pin], GPIO.HIGH)
 	# Sleep for 5 seconds
 	sleep(5) 
